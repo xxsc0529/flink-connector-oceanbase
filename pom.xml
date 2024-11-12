@@ -37,6 +37,7 @@ under the License.
         <module>flink-sql-connector-oceanbase</module>
         <module>flink-sql-connector-oceanbase-directload</module>
         <module>flink-connector-oceanbase-e2e-tests</module>
+        <module>flink-connector-oceanbase-tools-cdc</module>
     </modules>
 
     <properties>
