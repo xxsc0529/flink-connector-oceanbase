@@ -117,7 +117,7 @@ public class OceanBaseJsonSerializationSchemaTest {
         TimestampData timestampWithLocalTZ =
                 TimestampData.fromInstant(Instant.parse("2024-01-01T12:34:56Z"));
         assertEquals(
-                "2024-01-01T20:34:56+08:00[Etc/UTC]",
+                "2024-01-01T12:34:56Z[Etc/UTC]",
                 schema.createNotNullConverter(new LocalZonedTimestampType())
                         .convert(timestampWithLocalTZ));
 
