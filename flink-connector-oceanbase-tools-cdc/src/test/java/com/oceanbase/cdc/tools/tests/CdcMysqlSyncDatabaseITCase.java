@@ -84,7 +84,6 @@ public class CdcMysqlSyncDatabaseITCase extends OceanBaseMySQLTestBase {
                     .withExposedPorts(MYSQL_PORT)
                     .withDatabaseName(MYSQL_DATABASE)
                     .withPassword(MYSQL_USER_PASSWORD)
-                    .withEnv("TZ", "Asia/Shanghai")
                     .withLogConsumer(
                             new Slf4jLogConsumer(
                                     DockerLoggerFactory.getLogger("mysql-docker-image")));
