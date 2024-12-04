@@ -56,7 +56,7 @@ public class CdcMysqlSyncDatabaseITCase extends OceanBaseMySQLTestBase {
     private static final Integer MYSQL_PORT = 3306;
     private static final String MYSQL_USER_NAME = "root";
     private static final String MYSQL_USER_PASSWORD = "mysqlpw";
-    private static final String MYSQL_DATABASE = "mysql_cdc";
+    private static final String MYSQL_DATABASE = "test";
     private static final String MYSQL_TABLE_NAME = "test_history_text";
     static StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
@@ -79,7 +79,7 @@ public class CdcMysqlSyncDatabaseITCase extends OceanBaseMySQLTestBase {
             new MySqlContainer()
                     .withConfigurationOverride("docker/server-gtids/my.cnf")
                     .withSetupSQL("sql/cdc.sql")
-                    // .withNetwork(NETWORK)
+                    .withNetwork(NETWORK)
                     .withNetworkAliases(MYSQL_HOST)
                     .withExposedPorts(MYSQL_PORT)
                     .withDatabaseName(MYSQL_DATABASE)
@@ -93,6 +93,7 @@ public class CdcMysqlSyncDatabaseITCase extends OceanBaseMySQLTestBase {
         extractedCdcSync();
         Thread.sleep(30000);
         checkResult();
+        env.close();
     }
 
     private static void extractedCdcSync() throws Exception {
@@ -145,8 +146,6 @@ public class CdcMysqlSyncDatabaseITCase extends OceanBaseMySQLTestBase {
                 .create();
         databaseSync.build();
         env.executeAsync(String.format("MySQL-Doris Database Sync: %s", MYSQL_DATABASE));
-        checkResult();
-        env.close();
     }
 
     static void checkResult() {
