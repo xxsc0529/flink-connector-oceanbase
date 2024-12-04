@@ -72,7 +72,7 @@ public class CdcMysqlSyncDatabaseITCase extends OceanBaseMySQLTestBase {
 
     @AfterClass
     public static void tearDown() {
-        Stream.of(CONTAINER,MYSQL_CONTAINER).forEach(GenericContainer::stop);
+        Stream.of(CONTAINER, MYSQL_CONTAINER).forEach(GenericContainer::stop);
     }
 
     private static final MySqlContainer MYSQL_CONTAINER =
