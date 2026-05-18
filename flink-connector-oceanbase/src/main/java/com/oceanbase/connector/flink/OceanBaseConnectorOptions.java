@@ -119,6 +119,28 @@ public class OceanBaseConnectorOptions extends ConnectorOptions {
     public static final String FILE_COMPLETION_KAFKA_PROPS_PREFIX =
             "file-completion.kafka.properties.";
 
+    public static final ConfigOption<String> TABLE_NAME_SPLIT_COLUMN =
+            ConfigOptions.key("table-name.split-column")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription(
+                            "Physical column whose value selects the target table name. "
+                                    + "When null or blank after trim, rows are written to 'table-name'.");
+
+    public static final ConfigOption<String> TABLE_NAME_SPLIT_AFFIX =
+            ConfigOptions.key("table-name.split-affix")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription(
+                            "How to join the split value with 'table-name': 'suffix' or 'prefix'.");
+
+    public static final ConfigOption<String> TABLE_NAME_SPLIT_CONCAT =
+            ConfigOptions.key("table-name.split-concat")
+                    .stringType()
+                    .defaultValue("_")
+                    .withDescription(
+                            "Separator between 'table-name' and the split value. Default '_'.");
+
     private static final String KAFKA_BOOTSTRAP_SERVERS = "bootstrap.servers";
 
     private final Map<String, String> rawOptions;
@@ -206,6 +228,65 @@ public class OceanBaseConnectorOptions extends ConnectorOptions {
             return;
         }
         requireCompleteFileCompletionKafkaOptions();
+    }
+
+    /** True when {@link #TABLE_NAME_SPLIT_COLUMN} is set. */
+    public boolean isTableNameSplitEnabled() {
+        return getTableNameSplitColumn() != null;
+    }
+
+    public String getTableNameSplitColumn() {
+        return trimToNull(allConfig.get(TABLE_NAME_SPLIT_COLUMN));
+    }
+
+    public TableNameSplitAffix getTableNameSplitAffix() {
+        String raw = trimToNull(allConfig.get(TABLE_NAME_SPLIT_AFFIX));
+        if (raw == null) {
+            return null;
+        }
+        return TableNameSplitAffix.fromConfigValue(raw);
+    }
+
+    public String getTableNameSplitConcat() {
+        return allConfig.get(TABLE_NAME_SPLIT_CONCAT);
+    }
+
+    /**
+     * When table-name split is enabled, {@link #TABLE_NAME_SPLIT_COLUMN} and {@link
+     * #TABLE_NAME_SPLIT_AFFIX} must be set.
+     */
+    public void validateTableNameSplitOptions() {
+        String splitColumn = getTableNameSplitColumn();
+        if (splitColumn == null) {
+            if (trimToNull(allConfig.get(TABLE_NAME_SPLIT_AFFIX)) != null) {
+                throw new IllegalArgumentException(
+                        "Option '"
+                                + TABLE_NAME_SPLIT_COLUMN.key()
+                                + "' is required when '"
+                                + TABLE_NAME_SPLIT_AFFIX.key()
+                                + "' is set.");
+            }
+            return;
+        }
+        if (getTableNameSplitAffix() == null) {
+            throw new IllegalArgumentException(
+                    "Missing required option '"
+                            + TABLE_NAME_SPLIT_AFFIX.key()
+                            + "' for table-name split.");
+        }
+        String concat = getTableNameSplitConcat();
+        if (concat == null || concat.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Option '" + TABLE_NAME_SPLIT_CONCAT.key() + "' must not be empty.");
+        }
+        if (getPartitionEnabled()) {
+            throw new IllegalArgumentException(
+                    "Options '"
+                            + TABLE_NAME_SPLIT_COLUMN.key()
+                            + "' and '"
+                            + PARTITION_ENABLED.key()
+                            + "' cannot both be enabled.");
+        }
     }
 
     private void requireCompleteFileCompletionKafkaOptions() {

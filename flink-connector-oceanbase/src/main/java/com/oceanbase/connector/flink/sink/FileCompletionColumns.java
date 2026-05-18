@@ -73,11 +73,25 @@ public final class FileCompletionColumns {
     /** Physical column indices in {@code physicalFull} retained in the OB write schema. */
     public static int[] obColumnIndicesInFullRow(
             ResolvedSchema physicalFull, String flagColumn, String messageColumn) {
+        return obColumnIndicesInFullRow(physicalFull, flagColumn, messageColumn, null);
+    }
+
+    /**
+     * Like {@link #obColumnIndicesInFullRow(ResolvedSchema, String, String)} but also excludes
+     * {@code splitColumn} when non-null (table-name split).
+     */
+    public static int[] obColumnIndicesInFullRow(
+            ResolvedSchema physicalFull,
+            String flagColumn,
+            String messageColumn,
+            String splitColumn) {
         List<Column> columns = physicalFull.getColumns();
         List<Integer> indices = new ArrayList<>(columns.size());
         for (int i = 0; i < columns.size(); i++) {
             Column column = columns.get(i);
-            if (column.isPhysical() && !isMetaColumn(column.getName(), flagColumn, messageColumn)) {
+            if (column.isPhysical()
+                    && !isMetaColumn(column.getName(), flagColumn, messageColumn)
+                    && (splitColumn == null || !column.getName().equals(splitColumn))) {
                 indices.add(i);
             }
         }

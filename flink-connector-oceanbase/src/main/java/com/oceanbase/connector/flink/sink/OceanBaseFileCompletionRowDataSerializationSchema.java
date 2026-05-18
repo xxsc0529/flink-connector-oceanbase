@@ -49,18 +49,49 @@ public class OceanBaseFileCompletionRowDataSerializationSchema
             ResolvedSchema physicalFull,
             String flagColumn,
             String messageColumn) {
+        this(obTableInfo, physicalFull, flagColumn, messageColumn, null);
+    }
+
+    public OceanBaseFileCompletionRowDataSerializationSchema(
+            TableInfo obTableInfo,
+            ResolvedSchema physicalFull,
+            String flagColumn,
+            String messageColumn,
+            String splitColumn) {
+        this(
+                obTableInfo,
+                FileCompletionColumns.resolvePhysicalColumnIndex(physicalFull, flagColumn),
+                FileCompletionColumns.resolvePhysicalColumnIndex(physicalFull, messageColumn),
+                buildObFieldGetters(
+                        obTableInfo, physicalFull, flagColumn, messageColumn, splitColumn));
+    }
+
+    /** For table-split routing: indices are precomputed so {@link ResolvedSchema} is not stored. */
+    OceanBaseFileCompletionRowDataSerializationSchema(
+            TableInfo obTableInfo,
+            int flagPos,
+            int messagePos,
+            RowData.FieldGetter[] obFieldGetters) {
         this.delegate = new OceanBaseRowDataSerializationSchema(obTableInfo);
-        this.flagPos = FileCompletionColumns.resolvePhysicalColumnIndex(physicalFull, flagColumn);
-        this.messagePos =
-                FileCompletionColumns.resolvePhysicalColumnIndex(physicalFull, messageColumn);
+        this.flagPos = flagPos;
+        this.messagePos = messagePos;
+        this.obFieldGetters = obFieldGetters;
+    }
+
+    static RowData.FieldGetter[] buildObFieldGetters(
+            TableInfo obTableInfo,
+            ResolvedSchema physicalFull,
+            String flagColumn,
+            String messageColumn,
+            String splitColumn) {
         int[] obIndices =
                 FileCompletionColumns.obColumnIndicesInFullRow(
-                        physicalFull, flagColumn, messageColumn);
-        this.obFieldGetters = new RowData.FieldGetter[obIndices.length];
+                        physicalFull, flagColumn, messageColumn, splitColumn);
+        RowData.FieldGetter[] getters = new RowData.FieldGetter[obIndices.length];
         for (int i = 0; i < obIndices.length; i++) {
-            obFieldGetters[i] =
-                    RowData.createFieldGetter(obTableInfo.getDataTypes().get(i), obIndices[i]);
+            getters[i] = RowData.createFieldGetter(obTableInfo.getDataTypes().get(i), obIndices[i]);
         }
+        return getters;
     }
 
     @Override

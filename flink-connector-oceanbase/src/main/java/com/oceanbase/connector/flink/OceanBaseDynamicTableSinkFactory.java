@@ -18,6 +18,7 @@ package com.oceanbase.connector.flink;
 
 import com.oceanbase.connector.flink.sink.FileCompletionColumns;
 import com.oceanbase.connector.flink.sink.OceanBaseDynamicTableSink;
+import com.oceanbase.connector.flink.sink.TableSplitColumns;
 import com.oceanbase.connector.flink.source.OceanBaseTableSourceFactory;
 import com.oceanbase.connector.flink.utils.OptionUtils;
 
@@ -54,11 +55,16 @@ public class OceanBaseDynamicTableSinkFactory implements DynamicTableSinkFactory
         OptionUtils.printOptions(IDENTIFIER, options);
         OceanBaseConnectorOptions connectorOptions = new OceanBaseConnectorOptions(options);
         connectorOptions.validateFileCompletionOptions();
+        connectorOptions.validateTableNameSplitOptions();
         if (connectorOptions.isFileCompletionKafkaEnabled()) {
             FileCompletionColumns.assertColumnsValid(
                     physicalSchema,
                     connectorOptions.getFileCompletionFlagColumn(),
                     connectorOptions.getFileCompletionMessageColumn());
+        }
+        if (connectorOptions.isTableNameSplitEnabled()) {
+            TableSplitColumns.assertColumnValid(
+                    physicalSchema, connectorOptions.getTableNameSplitColumn());
         }
         return new OceanBaseDynamicTableSink(physicalSchema, connectorOptions);
     }
@@ -103,6 +109,9 @@ public class OceanBaseDynamicTableSinkFactory implements DynamicTableSinkFactory
         options.add(OceanBaseConnectorOptions.FILE_COMPLETION_MESSAGE_COLUMN);
         options.add(OceanBaseConnectorOptions.FILE_COMPLETION_KAFKA_TOPIC);
         options.add(OceanBaseConnectorOptions.FILE_COMPLETION_KAFKA_NOTIFICATION_ENABLED);
+        options.add(OceanBaseConnectorOptions.TABLE_NAME_SPLIT_COLUMN);
+        options.add(OceanBaseConnectorOptions.TABLE_NAME_SPLIT_AFFIX);
+        options.add(OceanBaseConnectorOptions.TABLE_NAME_SPLIT_CONCAT);
         return options;
     }
 }

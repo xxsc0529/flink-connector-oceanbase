@@ -52,18 +52,11 @@ public class OceanBaseDynamicTableSink extends AbstractDynamicTableSink {
 
         final RecordSerializationSchema<RowData> serializer;
         final FileCompletionNotifier notifier;
-        if (connectorOptions.isFileCompletionKafkaEnabled()) {
-            String flagColumn = connectorOptions.getFileCompletionFlagColumn();
-            String messageColumn = connectorOptions.getFileCompletionMessageColumn();
-            ResolvedSchema obPhysical =
-                    FileCompletionColumns.stripFromSchema(
-                            physicalSchema, flagColumn, messageColumn);
-            serializer =
-                    new OceanBaseFileCompletionRowDataSerializationSchema(
-                            new TableInfo(tableId, obPhysical),
-                            physicalSchema,
-                            flagColumn,
-                            messageColumn);
+        if (connectorOptions.isTableNameSplitEnabled()) {
+            serializer = buildTableSplitSerializer(tableId);
+            notifier = buildFileCompletionNotifier();
+        } else if (connectorOptions.isFileCompletionKafkaEnabled()) {
+            serializer = buildFileCompletionSerializer(tableId);
             notifier = new KafkaFileCompletionNotifier(connectorOptions);
         } else {
             serializer =
@@ -81,6 +74,52 @@ public class OceanBaseDynamicTableSink extends AbstractDynamicTableSink {
                                 recordFlusher,
                                 notifier),
                 connectorOptions.getSinkParallelism());
+    }
+
+    private RecordSerializationSchema<RowData> buildTableSplitSerializer(TableId tableId) {
+        String splitColumn = connectorOptions.getTableNameSplitColumn();
+        ResolvedSchema obPhysical = TableSplitColumns.stripFromSchema(physicalSchema, splitColumn);
+        if (connectorOptions.isFileCompletionKafkaEnabled()) {
+            obPhysical =
+                    FileCompletionColumns.stripFromSchema(
+                            obPhysical,
+                            connectorOptions.getFileCompletionFlagColumn(),
+                            connectorOptions.getFileCompletionMessageColumn());
+        }
+        if (connectorOptions.isFileCompletionKafkaEnabled()) {
+            return new OceanBaseTableSplitRowDataSerializationSchema(
+                    tableId,
+                    physicalSchema,
+                    splitColumn,
+                    connectorOptions.getTableNameSplitAffix(),
+                    connectorOptions.getTableNameSplitConcat(),
+                    obPhysical,
+                    connectorOptions.getFileCompletionFlagColumn(),
+                    connectorOptions.getFileCompletionMessageColumn());
+        }
+        return new OceanBaseTableSplitRowDataSerializationSchema(
+                tableId,
+                physicalSchema,
+                splitColumn,
+                connectorOptions.getTableNameSplitAffix(),
+                connectorOptions.getTableNameSplitConcat(),
+                obPhysical);
+    }
+
+    private RecordSerializationSchema<RowData> buildFileCompletionSerializer(TableId tableId) {
+        String flagColumn = connectorOptions.getFileCompletionFlagColumn();
+        String messageColumn = connectorOptions.getFileCompletionMessageColumn();
+        ResolvedSchema obPhysical =
+                FileCompletionColumns.stripFromSchema(physicalSchema, flagColumn, messageColumn);
+        return new OceanBaseFileCompletionRowDataSerializationSchema(
+                new TableInfo(tableId, obPhysical), physicalSchema, flagColumn, messageColumn);
+    }
+
+    private FileCompletionNotifier buildFileCompletionNotifier() {
+        if (connectorOptions.isFileCompletionKafkaEnabled()) {
+            return new KafkaFileCompletionNotifier(connectorOptions);
+        }
+        return FileCompletionNotifier.noop();
     }
 
     @Override

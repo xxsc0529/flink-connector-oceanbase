@@ -57,4 +57,8 @@ public class TableId implements Serializable {
     public String getTableName() {
         return tableName;
     }
+
+    public TableId withTableName(@Nonnull String newTableName) {
+        return new TableId(identifier, schemaName, newTableName);
+    }
 }
