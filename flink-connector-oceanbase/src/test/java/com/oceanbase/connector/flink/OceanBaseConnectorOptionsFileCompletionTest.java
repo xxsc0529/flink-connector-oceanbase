@@ -132,6 +132,37 @@ class OceanBaseConnectorOptionsFileCompletionTest {
     }
 
     @Test
+    void hasColumnMappingWhenFlagAndMessageColumnsConfigured() {
+        Map<String, String> m = base();
+        m.put("file-completion.flag-column", "is_eof");
+        m.put("file-completion.message-column", "kafka_msg");
+        OceanBaseConnectorOptions opts = new OceanBaseConnectorOptions(m);
+        assertTrue(opts.hasFileCompletionColumnMapping());
+        assertFalse(opts.isFileCompletionKafkaEnabled());
+    }
+
+    @Test
+    void noColumnMappingWhenOnlyFlagColumnConfigured() {
+        Map<String, String> m = base();
+        m.put("file-completion.flag-column", "is_eof");
+        OceanBaseConnectorOptions opts = new OceanBaseConnectorOptions(m);
+        assertFalse(opts.hasFileCompletionColumnMapping());
+    }
+
+    @Test
+    void columnMappingWithNotificationDisabledDespiteFullKafkaOptions() {
+        Map<String, String> m = base();
+        m.put("file-completion.flag-column", "is_eof");
+        m.put("file-completion.message-column", "kafka_msg");
+        m.put("file-completion.kafka.topic", "events");
+        m.put("file-completion.kafka.properties.bootstrap.servers", "localhost:9092");
+        m.put("file-completion.kafka.notification-enabled", "false");
+        OceanBaseConnectorOptions opts = new OceanBaseConnectorOptions(m);
+        assertTrue(opts.hasFileCompletionColumnMapping());
+        assertFalse(opts.isFileCompletionKafkaEnabled());
+    }
+
+    @Test
     void kafkaDisabledByDefaultEvenWhenAllFileCompletionOptionsPresent() {
         Map<String, String> m = base();
         m.put("file-completion.flag-column", "is_eof");

@@ -37,6 +37,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -191,6 +192,20 @@ class OceanBaseFileCompletionSqlITCase {
                 .await();
 
         assertEquals(2, queryOrderedById().size());
+        assertTrue(mockProducer.history().isEmpty());
+    }
+
+    @Test
+    void notificationDisabledKeepsCompletionColumnsWithoutKafka() throws Exception {
+        StreamTableEnvironment tEnv = newTableEnv();
+
+        tEnv.executeSql(buildSinkDdlWithFileCompletionKafka(false));
+        tEnv.executeSql(
+                        "INSERT INTO ob_sink VALUES "
+                                + " (50, CAST('eof-row' AS STRING), CAST(6.00 AS DECIMAL(10,2)), true, CAST('should-not-send' AS STRING))")
+                .await();
+
+        assertEquals(Collections.singletonList("50|eof-row|6.00"), queryOrderedById());
         assertTrue(mockProducer.history().isEmpty());
     }
 

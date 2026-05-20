@@ -56,7 +56,7 @@ public class OceanBaseDynamicTableSinkFactory implements DynamicTableSinkFactory
         OceanBaseConnectorOptions connectorOptions = new OceanBaseConnectorOptions(options);
         connectorOptions.validateFileCompletionOptions();
         connectorOptions.validateTableNameSplitOptions();
-        if (connectorOptions.isFileCompletionKafkaEnabled()) {
+        if (connectorOptions.hasFileCompletionColumnMapping()) {
             FileCompletionColumns.assertColumnsValid(
                     physicalSchema,
                     connectorOptions.getFileCompletionFlagColumn(),

@@ -184,6 +184,13 @@ public class OceanBaseConnectorOptions extends ConnectorOptions {
                 && hasAllFileCompletionKafkaRequiredOptions();
     }
 
+    /**
+     * True when both flag and message column names are configured (independent of Kafka switch).
+     */
+    public boolean hasFileCompletionColumnMapping() {
+        return getFileCompletionFlagColumn() != null && getFileCompletionMessageColumn() != null;
+    }
+
     public boolean isFileCompletionKafkaNotificationEnabled() {
         return allConfig.get(FILE_COMPLETION_KAFKA_NOTIFICATION_ENABLED);
     }

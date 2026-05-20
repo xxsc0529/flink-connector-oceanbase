@@ -58,6 +58,9 @@ public class OceanBaseDynamicTableSink extends AbstractDynamicTableSink {
         } else if (connectorOptions.isFileCompletionKafkaEnabled()) {
             serializer = buildFileCompletionSerializer(tableId);
             notifier = new KafkaFileCompletionNotifier(connectorOptions);
+        } else if (connectorOptions.hasFileCompletionColumnMapping()) {
+            serializer = buildStrippedObSerializer(tableId);
+            notifier = FileCompletionNotifier.noop();
         } else {
             serializer =
                     new OceanBaseRowDataSerializationSchema(new TableInfo(tableId, physicalSchema));
@@ -79,7 +82,7 @@ public class OceanBaseDynamicTableSink extends AbstractDynamicTableSink {
     private RecordSerializationSchema<RowData> buildTableSplitSerializer(TableId tableId) {
         String splitColumn = connectorOptions.getTableNameSplitColumn();
         ResolvedSchema obPhysical = TableSplitColumns.stripFromSchema(physicalSchema, splitColumn);
-        if (connectorOptions.isFileCompletionKafkaEnabled()) {
+        if (connectorOptions.hasFileCompletionColumnMapping()) {
             obPhysical =
                     FileCompletionColumns.stripFromSchema(
                             obPhysical,
@@ -104,6 +107,14 @@ public class OceanBaseDynamicTableSink extends AbstractDynamicTableSink {
                 connectorOptions.getTableNameSplitAffix(),
                 connectorOptions.getTableNameSplitConcat(),
                 obPhysical);
+    }
+
+    private RecordSerializationSchema<RowData> buildStrippedObSerializer(TableId tableId) {
+        String flagColumn = connectorOptions.getFileCompletionFlagColumn();
+        String messageColumn = connectorOptions.getFileCompletionMessageColumn();
+        ResolvedSchema obPhysical =
+                FileCompletionColumns.stripFromSchema(physicalSchema, flagColumn, messageColumn);
+        return new OceanBaseRowDataSerializationSchema(new TableInfo(tableId, obPhysical));
     }
 
     private RecordSerializationSchema<RowData> buildFileCompletionSerializer(TableId tableId) {

@@ -46,7 +46,7 @@ CREATE TABLE user_info (
 ## 限制
 
 - 不可与 `partition.enabled=true` 同时启用（启动校验会报错）。
-- 可与 `file-completion.kafka.notification-enabled=true` 同时使用；Flink 表需同时包含 split 列与完成通知列，且这些列均不会写入 OB。
+- 可与文件完成元列同时使用：配置 `file-completion.flag-column` 与 `file-completion.message-column` 后，Flink 表可同时包含 split 列与完成通知列，这些列均不会写入 OB；`file-completion.kafka.notification-enabled` 仅控制是否发 Kafka。
 - `url` 使用 `jdbc:mysql://` 时沿用默认 `com.mysql.cj.jdbc.Driver`；若使用 `jdbc:oceanbase://`，须设置 `driver-class-name=com.oceanbase.jdbc.Driver`。
 
 ## 集成测试

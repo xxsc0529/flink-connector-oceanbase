@@ -164,6 +164,23 @@ class OceanBaseTableSplitSqlITCase {
     }
 
     @Test
+    void splitWithFileCompletionColumnsButNotificationDisabled() throws Exception {
+        mockProducer = new MockProducer<>(true, new StringSerializer(), new StringSerializer());
+        KafkaFileCompletionNotifier.producerFactoryForTest = props -> mockProducer;
+
+        StreamTableEnvironment tEnv = newTableEnv();
+        tEnv.executeSql(buildSinkDdlWithFileCompletionDisabled());
+        tEnv.executeSql(
+                        "INSERT INTO ob_split_sink VALUES "
+                                + " (22, CAST('cn-eof' AS STRING), CAST('China' AS STRING), CAST('cn' AS STRING),"
+                                + "  true, CAST('should-not-send' AS STRING))")
+                .await();
+
+        assertEquals(Collections.singletonList("22|cn-eof|China"), queryTable(tableCn));
+        assertEquals(Collections.emptyList(), mockProducer.history());
+    }
+
+    @Test
     void splitWithFileCompletionRoutesToShardAndSendsKafka() throws Exception {
         mockProducer = new MockProducer<>(true, new StringSerializer(), new StringSerializer());
         KafkaFileCompletionNotifier.producerFactoryForTest = props -> mockProducer;
@@ -223,6 +240,45 @@ class OceanBaseTableSplitSqlITCase {
                 + " 'table-name.split-concat'='_',"
                 + " 'sync-write'='true',"
                 + " 'memstore-check.enabled'='false'"
+                + ")";
+    }
+
+    private static String buildSinkDdlWithFileCompletionDisabled() {
+        return "CREATE TABLE ob_split_sink ("
+                + " id INT,"
+                + " name STRING,"
+                + " country STRING,"
+                + " split_column STRING,"
+                + " is_eof BOOLEAN,"
+                + " kafka_msg STRING,"
+                + " PRIMARY KEY (id) NOT ENFORCED"
+                + ") WITH ("
+                + " 'connector'='oceanbase',"
+                + " 'url'='"
+                + jdbcUrl
+                + "',"
+                + " 'username'='"
+                + jdbcUser
+                + "',"
+                + " 'password'='"
+                + jdbcPassword
+                + "',"
+                + " 'schema-name'='"
+                + obSchema
+                + "',"
+                + " 'table-name'='"
+                + baseTable
+                + "',"
+                + " 'table-name.split-column'='split_column',"
+                + " 'table-name.split-affix'='suffix',"
+                + " 'table-name.split-concat'='_',"
+                + " 'sync-write'='true',"
+                + " 'memstore-check.enabled'='false',"
+                + " 'file-completion.kafka.notification-enabled'='false',"
+                + " 'file-completion.flag-column'='is_eof',"
+                + " 'file-completion.message-column'='kafka_msg',"
+                + " 'file-completion.kafka.topic'='oss-split-file-events',"
+                + " 'file-completion.kafka.properties.bootstrap.servers'='dummy:9092'"
                 + ")";
     }
 

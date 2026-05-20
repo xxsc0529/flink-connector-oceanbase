@@ -10,12 +10,14 @@
 
 ## 何时启用
 
-总开关 **`file-completion.kafka.notification-enabled`**，**默认 `false`**：
+总开关 **`file-completion.kafka.notification-enabled`**，**默认 `false`**，只控制是否向 Kafka 发通知：
 
-- **`true`**：开启 Kafka 通知，**必须**配齐下文四项，缺一建表/校验即报错。
-- **`false`**（默认）：不发 Kafka；其它 `file-completion.*` **不做必填校验**。此时 Flink 表列须与 OB 表一致，勿多留完成用两列。
+- **`true`**：开启 Kafka 通知，**必须**配齐下文 Kafka 相关四项，缺一建表/校验即报错。
+- **`false`**（默认）：不发 Kafka；Kafka 相关四项**不做必填校验**。
 
-开启通知时，须同时配置（选项值去掉首尾空白后非空）：
+元列开关（与 Kafka 开关独立）：同时配置 `file-completion.flag-column` 与 `file-completion.message-column` 后，DDL 中的标志列、消息列视为 **Flink 元列**，**始终不写 OceanBase**，与 `notification-enabled` 取值无关。这样可保持同一份 `CREATE TABLE`（含 `is_eof`、`kafka_msg`），仅通过 `notification-enabled` 切换是否发 Kafka。
+
+开启 Kafka 通知（`notification-enabled` = `true`）时，还须配置（选项值去掉首尾空白后非空）：
 
 |                          选项                          |                 含义                  |
 |------------------------------------------------------|-------------------------------------|
@@ -34,7 +36,9 @@
 
 ## DDL 与主键
 
-仅在 `file-completion.kafka.notification-enabled` = `true` 时，业务列 + 标志列 + 消息列一起写在 sink 的 `CREATE TABLE` 里；**主键不能只由标志列和消息列组成**（须至少包含一条业务主键列）。
+配置了 `flag-column` 与 `message-column` 时，在 sink 的 `CREATE TABLE` 中写上业务列 + 标志列 + 消息列；**主键不能只由标志列和消息列组成**（须至少包含一条业务主键列）。
+
+`notification-enabled` = `false` 时仍可保留上述两列：它们不会写入 OB，且不会触发 Kafka（即使 `is_eof` = `true`）。
 
 ---
 
