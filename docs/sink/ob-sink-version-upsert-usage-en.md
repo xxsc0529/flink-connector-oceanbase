@@ -15,10 +15,10 @@ Oracle compatible mode uses `MERGE` and does not support these options.
 
 ## Options
 
-| Option | Required | Description |
-|--------|----------|-------------|
-| `sink.upsert.version-column` | No | Physical version column name. Generates `col=IF(VALUES(ver)>ver, VALUES(col), col)` for every **non-primary-key** column. |
-| `sink.duplicate-key-update-clause` | No | Custom assignment list **without** the `ON DUPLICATE KEY UPDATE` prefix. |
+|               Option               | Required |                                                        Description                                                        |
+|------------------------------------|----------|---------------------------------------------------------------------------------------------------------------------------|
+| `sink.upsert.version-column`       | No       | Physical version column name. Generates `col=IF(VALUES(ver)>ver, VALUES(col), col)` for every **non-primary-key** column. |
+| `sink.duplicate-key-update-clause` | No       | Custom assignment list **without** the `ON DUPLICATE KEY UPDATE` prefix.                                                  |
 
 **Mutually exclusive**: both options cannot be set; validation fails at table creation.
 
@@ -55,9 +55,9 @@ INSERT INTO ob_sink VALUES (1, 'stale', 1);  -- keeps v2 when version does not i
 
 ## Integration Tests
 
-| Class | Environment |
-|-------|-------------|
-| `OceanBaseVersionUpsertSqlITCase` | Testcontainers OceanBase CE |
+|                 Class                  |          Environment           |
+|----------------------------------------|--------------------------------|
+| `OceanBaseVersionUpsertSqlITCase`      | Testcontainers OceanBase CE    |
 | `OceanBaseVersionUpsertExternalITCase` | External instance via env vars |
 
 Env vars: `OCEANBASE_VERSION_UPSERT_IT_JDBC_URL`, `OCEANBASE_VERSION_UPSERT_IT_USERNAME`, `OCEANBASE_VERSION_UPSERT_IT_PASSWORD` (optional), `OCEANBASE_VERSION_UPSERT_IT_SCHEMA` (optional, default `test`).

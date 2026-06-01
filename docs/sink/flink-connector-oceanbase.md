@@ -439,11 +439,11 @@ CREATE TABLE t_sink
 
 ### Advanced Sink Features
 
-| Feature | Documentation |
-|---------|---------------|
-| Version-conditional upsert (MySQL `ON DUPLICATE KEY UPDATE`) | [ob-sink-version-upsert-usage-en.md](./ob-sink-version-upsert-usage-en.md) |
-| File-completion Kafka notification | [ob-sink-file-completion-kafka-usage.md](./ob-sink-file-completion-kafka-usage.md) |
-| Table routing by column | [ob-sink-table-split-usage.md](./ob-sink-table-split-usage.md) |
+|                           Feature                            |                                   Documentation                                    |
+|--------------------------------------------------------------|------------------------------------------------------------------------------------|
+| Version-conditional upsert (MySQL `ON DUPLICATE KEY UPDATE`) | [ob-sink-version-upsert-usage-en.md](./ob-sink-version-upsert-usage-en.md)         |
+| File-completion Kafka notification                           | [ob-sink-file-completion-kafka-usage.md](./ob-sink-file-completion-kafka-usage.md) |
+| Table routing by column                                      | [ob-sink-table-split-usage.md](./ob-sink-table-split-usage.md)                     |
 
 ## References
 
