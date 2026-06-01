@@ -77,6 +77,22 @@ public interface OceanBaseDialect extends Serializable {
             @Nullable SerializableFunction<String, String> placeholderFunc);
 
     /**
+     * Gets the upsert statement with optional MySQL {@code ON DUPLICATE KEY UPDATE} customization.
+     *
+     * @param upsertOptions version-compare or custom update clause; ignored by Oracle dialect
+     */
+    default String getUpsertStatement(
+            @Nonnull String schemaName,
+            @Nonnull String tableName,
+            @Nonnull List<String> fieldNames,
+            @Nonnull List<String> uniqueKeyFields,
+            @Nullable SerializableFunction<String, String> placeholderFunc,
+            @Nullable UpsertOptions upsertOptions) {
+        return getUpsertStatement(
+                schemaName, tableName, fieldNames, uniqueKeyFields, placeholderFunc);
+    }
+
+    /**
      * Gets the insert statement
      *
      * @param schemaName schema name

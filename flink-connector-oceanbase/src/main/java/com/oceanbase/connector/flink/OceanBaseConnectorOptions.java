@@ -141,6 +141,32 @@ public class OceanBaseConnectorOptions extends ConnectorOptions {
                     .withDescription(
                             "Separator between 'table-name' and the split value. Default '_'.");
 
+    /**
+     * When set (MySQL mode only), non-key columns use conditional upsert: {@code col=IF(VALUES(ver)
+     * > ver, VALUES(col), col)} so rows are updated only if the incoming version is greater.
+     */
+    public static final ConfigOption<String> SINK_UPSERT_VERSION_COLUMN =
+            ConfigOptions.key("sink.upsert.version-column")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription(
+                            "Physical column used for optimistic/versioned upsert in MySQL mode. "
+                                    + "Generates ON DUPLICATE KEY UPDATE with IF(VALUES(col)>col,...) "
+                                    + "semantics for all non-primary-key columns.");
+
+    /**
+     * Full {@code ON DUPLICATE KEY UPDATE} assignment list (without the prefix). Takes precedence
+     * over {@link #SINK_UPSERT_VERSION_COLUMN} when both are set.
+     */
+    public static final ConfigOption<String> SINK_DUPLICATE_KEY_UPDATE_CLAUSE =
+            ConfigOptions.key("sink.duplicate-key-update-clause")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription(
+                            "Custom MySQL ON DUPLICATE KEY UPDATE clause, e.g. "
+                                    + "`data`=IF(VALUES(`version`)>`version`,VALUES(`data`),`data`). "
+                                    + "Only for MySQL compatible-mode.");
+
     private static final String KAFKA_BOOTSTRAP_SERVERS = "bootstrap.servers";
 
     private final Map<String, String> rawOptions;
@@ -256,6 +282,26 @@ public class OceanBaseConnectorOptions extends ConnectorOptions {
 
     public String getTableNameSplitConcat() {
         return allConfig.get(TABLE_NAME_SPLIT_CONCAT);
+    }
+
+    public String getSinkUpsertVersionColumn() {
+        return trimToNull(allConfig.get(SINK_UPSERT_VERSION_COLUMN));
+    }
+
+    public String getSinkDuplicateKeyUpdateClause() {
+        return trimToNull(allConfig.get(SINK_DUPLICATE_KEY_UPDATE_CLAUSE));
+    }
+
+    /** When both upsert options are set, only the custom clause is used. */
+    public void validateUpsertOptions() {
+        if (getSinkUpsertVersionColumn() != null && getSinkDuplicateKeyUpdateClause() != null) {
+            throw new IllegalArgumentException(
+                    "Options '"
+                            + SINK_UPSERT_VERSION_COLUMN.key()
+                            + "' and '"
+                            + SINK_DUPLICATE_KEY_UPDATE_CLAUSE.key()
+                            + "' cannot both be set; the custom clause takes precedence.");
+        }
     }
 
     /**

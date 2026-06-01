@@ -52,6 +52,24 @@ public class OceanBaseOracleDialect implements OceanBaseDialect {
             @Nonnull String tableName,
             @Nonnull List<String> fieldNames,
             @Nonnull List<String> uniqueKeyFields,
+            @Nullable SerializableFunction<String, String> placeholderFunc,
+            @Nullable UpsertOptions upsertOptions) {
+        if (upsertOptions != null && upsertOptions.isConfigured()) {
+            throw new IllegalArgumentException(
+                    "MySQL ON DUPLICATE KEY UPDATE options are not supported in Oracle mode. "
+                            + "Use MySQL compatible-mode or remove sink.upsert.version-column / "
+                            + "sink.duplicate-key-update-clause.");
+        }
+        return getUpsertStatement(
+                schemaName, tableName, fieldNames, uniqueKeyFields, placeholderFunc);
+    }
+
+    @Override
+    public String getUpsertStatement(
+            @Nonnull String schemaName,
+            @Nonnull String tableName,
+            @Nonnull List<String> fieldNames,
+            @Nonnull List<String> uniqueKeyFields,
             @Nullable SerializableFunction<String, String> placeholderFunc) {
         String sourceFields =
                 fieldNames.stream()

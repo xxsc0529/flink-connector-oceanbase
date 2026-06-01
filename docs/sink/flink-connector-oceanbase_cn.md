@@ -440,6 +440,14 @@ CREATE TABLE t_sink
     </table>
 </div>
 
+### Sink 进阶功能
+
+| 功能 | 文档 |
+|------|------|
+| 按版本号条件 Upsert（MySQL `ON DUPLICATE KEY UPDATE`） | [ob-sink-version-upsert-usage.md](./ob-sink-version-upsert-usage.md) |
+| 文件完成 Kafka 通知 | [ob-sink-file-completion-kafka-usage.md](./ob-sink-file-completion-kafka-usage.md) |
+| 按列分表 | [ob-sink-table-split-usage.md](./ob-sink-table-split-usage.md) |
+
 ## 参考信息
 
 [https://issues.apache.org/jira/browse/FLINK-25569](https://issues.apache.org/jira/browse/FLINK-25569)

@@ -56,6 +56,7 @@ public class OceanBaseDynamicTableSinkFactory implements DynamicTableSinkFactory
         OceanBaseConnectorOptions connectorOptions = new OceanBaseConnectorOptions(options);
         connectorOptions.validateFileCompletionOptions();
         connectorOptions.validateTableNameSplitOptions();
+        connectorOptions.validateUpsertOptions();
         if (connectorOptions.hasFileCompletionColumnMapping()) {
             FileCompletionColumns.assertColumnsValid(
                     physicalSchema,
@@ -112,6 +113,8 @@ public class OceanBaseDynamicTableSinkFactory implements DynamicTableSinkFactory
         options.add(OceanBaseConnectorOptions.TABLE_NAME_SPLIT_COLUMN);
         options.add(OceanBaseConnectorOptions.TABLE_NAME_SPLIT_AFFIX);
         options.add(OceanBaseConnectorOptions.TABLE_NAME_SPLIT_CONCAT);
+        options.add(OceanBaseConnectorOptions.SINK_UPSERT_VERSION_COLUMN);
+        options.add(OceanBaseConnectorOptions.SINK_DUPLICATE_KEY_UPDATE_CLAUSE);
         return options;
     }
 }

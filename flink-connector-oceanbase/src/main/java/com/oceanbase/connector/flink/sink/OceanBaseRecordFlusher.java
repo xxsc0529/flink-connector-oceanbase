@@ -23,6 +23,7 @@ import com.oceanbase.connector.flink.connection.OceanBaseUserInfo;
 import com.oceanbase.connector.flink.connection.OceanBaseVersion;
 import com.oceanbase.connector.flink.dialect.OceanBaseDialect;
 import com.oceanbase.connector.flink.dialect.OceanBaseMySQLDialect;
+import com.oceanbase.connector.flink.dialect.UpsertOptions;
 import com.oceanbase.connector.flink.table.DataChangeRecord;
 import com.oceanbase.connector.flink.table.SchemaChangeRecord;
 import com.oceanbase.connector.flink.table.TableId;
@@ -126,7 +127,8 @@ public class OceanBaseRecordFlusher implements RecordFlusher {
                                 tableId.getTableName(),
                                 tableInfo.getFieldNames(),
                                 tableInfo.getKey(),
-                                tableInfo.getPlaceholderFunc()),
+                                tableInfo.getPlaceholderFunc(),
+                                UpsertOptions.from(options)),
                         tableInfo.getFieldNames(),
                         upsertBatch);
             }

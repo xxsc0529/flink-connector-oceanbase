@@ -24,7 +24,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class OceanBaseMySQLDialect implements OceanBaseDialect {
 
@@ -42,18 +41,26 @@ public class OceanBaseMySQLDialect implements OceanBaseDialect {
             @Nonnull List<String> fieldNames,
             @Nonnull List<String> uniqueKeyFields,
             @Nullable SerializableFunction<String, String> placeholderFunc) {
+        return getUpsertStatement(
+                schemaName, tableName, fieldNames, uniqueKeyFields, placeholderFunc, null);
+    }
+
+    @Override
+    public String getUpsertStatement(
+            @Nonnull String schemaName,
+            @Nonnull String tableName,
+            @Nonnull List<String> fieldNames,
+            @Nonnull List<String> uniqueKeyFields,
+            @Nullable SerializableFunction<String, String> placeholderFunc,
+            @Nullable UpsertOptions upsertOptions) {
         String updateClause =
-                fieldNames.stream()
-                        .filter(f -> !uniqueKeyFields.contains(f))
-                        .map(f -> quoteIdentifier(f) + "=VALUES(" + quoteIdentifier(f) + ")")
-                        .collect(Collectors.joining(", "));
+                MySQLDuplicateKeyUpdateClauseBuilder.resolve(
+                        fieldNames, uniqueKeyFields, this::quoteIdentifier, upsertOptions);
         String insertIntoStatement =
                 getInsertIntoStatement(schemaName, tableName, fieldNames, placeholderFunc);
-        if (StringUtils.isNotEmpty(updateClause)) {
-            // ON DUPLICATE KEY UPDATE
+        if (!MySQLDuplicateKeyUpdateClauseBuilder.isEmpty(updateClause)) {
             return insertIntoStatement + " ON DUPLICATE KEY UPDATE " + updateClause;
         } else {
-            // INSERT IGNORE
             return StringUtils.replace(insertIntoStatement, "INSERT", "INSERT IGNORE", 1);
         }
     }

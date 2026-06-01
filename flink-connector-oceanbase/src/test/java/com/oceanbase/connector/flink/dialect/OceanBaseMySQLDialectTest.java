@@ -41,6 +41,25 @@ class OceanBaseMySQLDialectTest {
     }
 
     @Test
+    void getUpsertStatementWithVersionColumn() {
+        OceanBaseMySQLDialect dialect = new OceanBaseMySQLDialect();
+        String upsertStatement =
+                dialect.getUpsertStatement(
+                        "test",
+                        "t",
+                        Stream.of("id", "data", "version").collect(Collectors.toList()),
+                        Stream.of("id").collect(Collectors.toList()),
+                        (SerializableFunction<String, String>) s -> "?",
+                        UpsertOptions.withVersionColumn("version"));
+        Assertions.assertEquals(
+                "INSERT INTO `test`.`t`(`id`, `data`, `version`) VALUES (?, ?, ?) "
+                        + "ON DUPLICATE KEY UPDATE "
+                        + "`data`=IF(VALUES(`version`)>`version`,VALUES(`data`),`data`), "
+                        + "`version`=IF(VALUES(`version`)>`version`,VALUES(`version`),`version`)",
+                upsertStatement);
+    }
+
+    @Test
     void getUpsertStatementIgnore() {
         OceanBaseMySQLDialect dialect = new OceanBaseMySQLDialect();
         String upsertStatement =
