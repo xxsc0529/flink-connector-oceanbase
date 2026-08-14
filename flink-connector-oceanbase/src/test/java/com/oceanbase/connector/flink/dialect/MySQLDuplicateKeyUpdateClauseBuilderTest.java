@@ -27,7 +27,7 @@ class MySQLDuplicateKeyUpdateClauseBuilderTest {
     void buildVersionCompareClause() {
         String clause =
                 MySQLDuplicateKeyUpdateClauseBuilder.buildVersionCompare(
-                        Arrays.asList("id", "data", "version"),
+                        Arrays.asList("id", "version", "data"),
                         Collections.singletonList("id"),
                         f -> "`" + f + "`",
                         "version");

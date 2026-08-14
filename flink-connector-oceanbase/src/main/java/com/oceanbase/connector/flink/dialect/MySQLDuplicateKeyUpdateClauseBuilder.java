@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -75,7 +76,13 @@ final class MySQLDuplicateKeyUpdateClauseBuilder {
         }
         String quotedVersion = quoteIdentifier.apply(versionColumn);
         String compareExpr = "VALUES(" + quotedVersion + ")>" + quotedVersion;
-        return buildAssignments(fieldNames, uniqueKeyFields, quoteIdentifier, compareExpr);
+
+        // MySQL evaluates assignments from left to right. Keep the stored version unchanged while
+        // every dependent assignment evaluates compareExpr, then update the version last.
+        List<String> updateOrder = new ArrayList<>(fieldNames);
+        updateOrder.remove(versionColumn);
+        updateOrder.add(versionColumn);
+        return buildAssignments(updateOrder, uniqueKeyFields, quoteIdentifier, compareExpr);
     }
 
     private static String buildAssignments(
