@@ -21,10 +21,12 @@ import com.oceanbase.connector.flink.table.DataChangeRecord;
 import com.oceanbase.connector.flink.table.RecordSerializationSchema;
 
 import org.apache.flink.api.common.typeutils.TypeSerializer;
-import org.apache.flink.api.connector.sink2.Sink;
 import org.apache.flink.api.connector.sink2.SinkWriter;
+import org.apache.flink.metrics.groups.SinkWriterMetricGroup;
 
-public class OceanBaseSink<T> implements Sink<T> {
+import java.io.Serializable;
+
+abstract class OceanBaseSinkSupport<T> implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -35,22 +37,7 @@ public class OceanBaseSink<T> implements Sink<T> {
     private final RecordFlusher recordFlusher;
     private final FileCompletionNotifier fileCompletionNotifier;
 
-    public OceanBaseSink(
-            ConnectorOptions options,
-            TypeSerializer<T> typeSerializer,
-            RecordSerializationSchema<T> recordSerializer,
-            DataChangeRecord.KeyExtractor keyExtractor,
-            RecordFlusher recordFlusher) {
-        this(
-                options,
-                typeSerializer,
-                recordSerializer,
-                keyExtractor,
-                recordFlusher,
-                FileCompletionNotifier.noop());
-    }
-
-    public OceanBaseSink(
+    protected OceanBaseSinkSupport(
             ConnectorOptions options,
             TypeSerializer<T> typeSerializer,
             RecordSerializationSchema<T> recordSerializer,
@@ -65,12 +52,12 @@ public class OceanBaseSink<T> implements Sink<T> {
         this.fileCompletionNotifier = fileCompletionNotifier;
     }
 
-    @Override
-    public SinkWriter<T> createWriter(InitContext context) {
+    protected final SinkWriter<T> createWriterInternal(
+            SinkWriterMetricGroup metricGroup, TypeSerializer<T> inputSerializer) {
         return new OceanBaseWriter<>(
                 options,
-                context,
-                typeSerializer,
+                metricGroup,
+                typeSerializer == null ? inputSerializer : typeSerializer,
                 recordSerializer,
                 keyExtractor,
                 recordFlusher,

@@ -68,10 +68,10 @@ public class OceanBaseDynamicTableSink extends AbstractDynamicTableSink {
         }
 
         return new SinkProvider(
-                typeSerializer ->
+                () ->
                         new OceanBaseSink<>(
                                 connectorOptions,
-                                typeSerializer,
+                                null,
                                 serializer,
                                 DataChangeRecord.KeyExtractor.simple(),
                                 recordFlusher,

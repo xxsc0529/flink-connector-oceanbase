@@ -24,7 +24,6 @@ import com.oceanbase.connector.flink.table.RecordSerializationSchema;
 import com.oceanbase.connector.flink.table.SchemaChangeRecord;
 
 import org.apache.flink.api.common.typeutils.TypeSerializer;
-import org.apache.flink.api.connector.sink2.Sink;
 import org.apache.flink.api.connector.sink2.SinkWriter;
 import org.apache.flink.metrics.groups.SinkWriterMetricGroup;
 import org.apache.flink.util.concurrent.ExecutorThreadFactory;
@@ -70,14 +69,14 @@ public class OceanBaseWriter<T> implements SinkWriter<T> {
 
     public OceanBaseWriter(
             ConnectorOptions options,
-            Sink.InitContext initContext,
+            SinkWriterMetricGroup metricGroup,
             TypeSerializer<T> typeSerializer,
             RecordSerializationSchema<T> recordSerializer,
             DataChangeRecord.KeyExtractor keyExtractor,
             RecordFlusher recordFlusher,
             FileCompletionNotifier fileCompletionNotifier) {
         this.options = options;
-        this.metricGroup = initContext.metricGroup();
+        this.metricGroup = metricGroup;
         this.typeSerializer = typeSerializer;
         this.recordSerializer = recordSerializer;
         this.keyExtractor = keyExtractor;
